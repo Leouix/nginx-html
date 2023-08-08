@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:1.23.3-alpine
+    volumes:
+      - .:/var/www
+      - .logs/nginx:/var/log/nginx
+    links:
+      - php
+    networks:
+      - app-network
+
+  php:
+    container_name: php
+    build:
+      context: ./app
+      args:
+        - USER=${USER}
+    tty: true
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=w_all
+      - DB_USERNAME=w_all_user
+      - DB_PASSWORD=w_all_pwd158
+    volumes:
+      - .logs/php:/var/log
+      - .:/var/www
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:5.7.22
+    environment:
+      MYSQL_DATABASE: 'w_all'
+      MYSQL_USER: 'w_all_user'
+      MYSQL_PASSWORD: 'w_all_pwd158'
+      MYSQL_ROOT_PASSWORD: 'maxdifficultpass678'
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
